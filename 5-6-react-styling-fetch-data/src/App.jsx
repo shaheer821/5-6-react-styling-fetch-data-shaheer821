@@ -323,37 +323,108 @@ import SearchBar from './components/SearchBar'
 import UserModal from './components/UserModal'
 
 function App() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [filteredUsers, setFilteredUsers] = useState([])
-  const [users, setUsers] = useState([])
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  const handleSearch = (term) => {
-    setSearchTerm(term)
-    if (!term) {
-      setFilteredUsers(users)
-    } else {
-      const filtered = users.filter(user =>
-        user.name.toLowerCase().includes(term.toLowerCase()) ||
-        user.email.toLowerCase().includes(term.toLowerCase())
-      )
-      setFilteredUsers(filtered)
-    }
-  }
-
+  // TODO 3.5: Open and close the user modal
   const handleUserClick = (user) => {
-    setSelectedUser(user)
-    setShowModal(true)
-  }
+    setSelectedUser(user);
+    setShowModal(true);
+  };
 
   const handleCloseModal = () => {
-    setShowModal(false)
-    setSelectedUser(null)
+    setShowModal(false);
+    setSelectedUser(null);
+  };
+
+  // TODO 3.3: Fetch User Data from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        const data = await response.json();
+        setUsers(data);
+        setFilteredUsers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // TODO 3.4: Filter Users by Search
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, users]);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
+  // TODO 3.6: Handle Loading and Error States
+  if (loading) {
+    return (
+      <div className="app">
+        <header className="bg-primary text-white py-3 mb-4 shadow">
+          <Container>
+            <h1 className="h2 mb-0">User Management Dashboard</h1>
+            <p className="mb-0 opacity-75">Manage and view user information</p>
+          </Container>
+        </header>
+        <Container className="py-3 d-flex justify-content-center">
+          <Spinner animation="border" />
+        </Container>
+        <footer className="bg-light py-4 mt-5">
+          <Container>
+            <p className="mb-0 text-center">© 2025 User Management System</p>
+          </Container>
+        </footer>
+      </div>
+    );
   }
 
+  if (error) {
+    return (
+      <div className="app">
+        <header className="bg-primary text-white py-3 mb-4 shadow">
+          <Container>
+            <h1 className="h2 mb-0">User Management Dashboard</h1>
+            <p className="mb-0 opacity-75">Manage and view user information</p>
+          </Container>
+        </header>
+        <Container className="py-3">
+          <Alert variant="danger">{error}</Alert>
+        </Container>
+        <footer className="bg-light py-4 mt-5">
+          <Container>
+            <p className="mb-0 text-center">© 2025 User Management System</p>
+          </Container>
+        </footer>
+      </div>
+    );
+  }
+
+  // TODO 3.7: Display Data
   return (
-    <div>
+    <div className="app">
       <header className="bg-primary text-white py-3 mb-4 shadow">
         <Container>
           <h1 className="h2 mb-0">User Management Dashboard</h1>
@@ -361,7 +432,7 @@ function App() {
         </Container>
       </header>
 
-      <Container className="py-3">
+      <Container className="py-3 mb-4">
         <SearchBar searchTerm={searchTerm} onSearchChange={handleSearch} />
         <UserList users={filteredUsers} onUserClick={handleUserClick} />
         <UserModal show={showModal} user={selectedUser} onHide={handleCloseModal} />
@@ -374,35 +445,6 @@ function App() {
       </footer>
     </div>
   );
-
-  return (
-    <div className="app">
-      <header className="">
-        <Container>
-          <h1 className="">User Management Dashboard</h1>
-          <p className="">Manage and view user information</p>
-        </Container>
-      </header>
-
-      <Container className="">
-        <SearchBar />
-
-        {/* {loading && <Spinner ... />} */}
-        {/* {error && <Alert ...>{error}</Alert>} */}
-        {/* <UserList users={filteredUsers} onUserClick={handleUserClick} /> */}
-
-        <UserModal />
-      </Container>
-
-      <footer className="">
-        <Container>
-          <p className="text-center text-muted mb-0">
-            &copy; 2024 User Management Dashboard
-          </p>
-        </Container>
-      </footer>
-    </div>
-  )
 }
 
-export default App
+export default App;
